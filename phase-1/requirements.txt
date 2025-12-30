@@ -1,0 +1,2 @@
+# Python dependencies for Todo Console Application
+pytest>=7.0.0

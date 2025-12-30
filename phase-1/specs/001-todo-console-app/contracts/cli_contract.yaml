@@ -1,0 +1,88 @@
+# CLI Contract: Todo Console Application
+
+## Command Structure
+```
+todo_app [command] [arguments]
+```
+
+## Commands
+
+### 1. Add Task
+**Command**: `add`
+**Description**: Add a new task to the todo list
+**Arguments**:
+- `--title` or `-t` (required): Title of the task
+- `--description` or `-d` (optional): Description of the task
+**Example**:
+```
+todo_app add --title "Buy groceries" --description "Milk, bread, eggs"
+todo_app add -t "Walk the dog"
+```
+**Output**: Success message with the created task ID
+
+### 2. View Tasks
+**Command**: `list` or `view`
+**Description**: View all tasks with their status
+**Arguments**: None
+**Example**:
+```
+todo_app list
+todo_app view
+```
+**Output**: Formatted list of all tasks with ID, title, description, and completion status
+
+### 3. Update Task
+**Command**: `update`
+**Description**: Update an existing task's title or description
+**Arguments**:
+- `--id` or `-i` (required): ID of the task to update
+- `--title` or `-t` (optional): New title for the task
+- `--description` or `-d` (optional): New description for the task
+**Example**:
+```
+todo_app update --id 1 --title "Buy weekly groceries"
+todo_app update -i 2 --description "Long walk in the park"
+```
+**Output**: Success message confirming the update
+
+### 4. Delete Task
+**Command**: `delete`
+**Description**: Delete a task by ID
+**Arguments**:
+- `--id` or `-i` (required): ID of the task to delete
+**Example**:
+```
+todo_app delete --id 1
+todo_app delete -i 2
+```
+**Output**: Success message confirming the deletion
+
+### 5. Mark Task Complete
+**Command**: `complete`
+**Description**: Mark a task as complete
+**Arguments**:
+- `--id` or `-i` (required): ID of the task to mark complete
+**Example**:
+```
+todo_app complete --id 1
+todo_app complete -i 2
+```
+**Output**: Success message confirming the status change
+
+### 6. Mark Task Incomplete
+**Command**: `incomplete`
+**Description**: Mark a task as incomplete
+**Arguments**:
+- `--id` or `-i` (required): ID of the task to mark incomplete
+**Example**:
+```
+todo_app incomplete --id 1
+todo_app incomplete -i 2
+```
+**Output**: Success message confirming the status change
+
+## Error Handling
+- Invalid command: Display help message
+- Missing required arguments: Display error message with usage
+- Invalid task ID: Display appropriate error message
+- Other errors: Display user-friendly error message
