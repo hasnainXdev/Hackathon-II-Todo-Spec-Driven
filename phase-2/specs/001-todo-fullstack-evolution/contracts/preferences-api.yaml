@@ -1,0 +1,90 @@
+# User Preferences API Contract
+
+## Base URL
+`https://api.example.com/v1`
+
+## Authentication
+All endpoints require a valid JWT token in the Authorization header:
+`Authorization: Bearer <jwt_token>`
+
+## Endpoints
+
+### GET /preferences
+Retrieve all preferences for the authenticated user.
+
+**Response:**
+- 200 OK: Preferences retrieved successfully
+```json
+{
+  "preferences": [
+    {
+      "id": "uuid",
+      "preference_key": "theme",
+      "preference_value": "dark",
+      "created_at": "timestamp",
+      "updated_at": "timestamp"
+    },
+    {
+      "id": "uuid",
+      "preference_key": "notifications_enabled",
+      "preference_value": "true",
+      "created_at": "timestamp",
+      "updated_at": "timestamp"
+    }
+  ]
+}
+```
+- 401 Unauthorized: Invalid/missing token
+
+### GET /preferences/{key}
+Retrieve a specific preference for the authenticated user.
+
+**Response:**
+- 200 OK: Preference retrieved successfully
+```json
+{
+  "id": "uuid",
+  "preference_key": "theme",
+  "preference_value": "dark",
+  "created_at": "timestamp",
+  "updated_at": "timestamp"
+}
+```
+- 401 Unauthorized: Invalid/missing token
+- 403 Forbidden: Preference doesn't belong to user
+- 404 Not Found: Preference doesn't exist
+
+### PUT /preferences/{key}
+Create or update a specific preference for the authenticated user.
+
+**Request Body:**
+```json
+{
+  "preference_value": "new value for the preference"
+}
+```
+
+**Response:**
+- 200 OK: Preference updated successfully
+```json
+{
+  "id": "uuid",
+  "preference_key": "theme",
+  "preference_value": "light",
+  "created_at": "timestamp",
+  "updated_at": "timestamp"
+}
+```
+- 400 Bad Request: Validation error
+- 401 Unauthorized: Invalid/missing token
+- 403 Forbidden: Preference doesn't belong to user
+- 422 Unprocessable Entity: Validation failed
+
+### DELETE /preferences/{key}
+Delete a specific preference for the authenticated user.
+
+**Response:**
+- 204 No Content: Preference deleted successfully
+- 401 Unauthorized: Invalid/missing token
+- 403 Forbidden: Preference doesn't belong to user
+- 404 Not Found: Preference doesn't exist
