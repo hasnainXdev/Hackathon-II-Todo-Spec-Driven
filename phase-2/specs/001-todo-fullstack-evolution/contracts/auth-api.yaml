@@ -1,0 +1,86 @@
+# Authentication API Contract
+
+## Base URL
+`https://api.example.com/v1`
+
+## Authentication
+Most endpoints require a valid JWT token in the Authorization header:
+`Authorization: Bearer <jwt_token>`
+
+Special authentication endpoints return JWT tokens.
+
+## Endpoints
+
+### POST /auth/register
+Register a new user account.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123!"
+}
+```
+
+**Response:**
+- 201 Created: User registered successfully
+```json
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "created_at": "timestamp"
+}
+```
+- 400 Bad Request: Validation error
+- 409 Conflict: Email already exists
+
+### POST /auth/login
+Authenticate a user and return JWT token.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123!"
+}
+```
+
+**Response:**
+- 200 OK: Login successful
+```json
+{
+  "access_token": "jwt_token",
+  "token_type": "bearer",
+  "expires_in": 3600
+}
+```
+- 400 Bad Request: Missing fields
+- 401 Unauthorized: Invalid credentials
+
+### POST /auth/logout
+Invalidate the current user session.
+
+**Headers:**
+`Authorization: Bearer <jwt_token>`
+
+**Response:**
+- 204 No Content: Logout successful
+- 401 Unauthorized: Invalid/missing token
+
+### GET /auth/me
+Get current user profile information.
+
+**Headers:**
+`Authorization: Bearer <jwt_token>`
+
+**Response:**
+- 200 OK: User profile retrieved
+```json
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "created_at": "timestamp",
+  "updated_at": "timestamp"
+}
+```
+- 401 Unauthorized: Invalid/missing token

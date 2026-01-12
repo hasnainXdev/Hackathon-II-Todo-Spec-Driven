@@ -1,0 +1,137 @@
+# Task Management API Contract
+
+## Base URL
+`https://api.example.com/v1`
+
+## Authentication
+All endpoints require a valid JWT token in the Authorization header:
+`Authorization: Bearer <jwt_token>`
+
+## Endpoints
+
+### POST /tasks
+Create a new task for the authenticated user.
+
+**Request Body:**
+```json
+{
+  "title": "Task title (required, 1-200 chars)",
+  "description": "Optional description"
+}
+```
+
+**Response:**
+- 201 Created: Task created successfully
+```json
+{
+  "id": "uuid",
+  "title": "Task title",
+  "description": "Optional description",
+  "completion_status": false,
+  "user_id": "user uuid",
+  "created_at": "timestamp",
+  "updated_at": "timestamp"
+}
+```
+- 400 Bad Request: Validation error
+- 401 Unauthorized: Invalid/missing token
+- 422 Unprocessable Entity: Validation failed
+
+### GET /tasks
+Retrieve all tasks for the authenticated user.
+
+**Response:**
+- 200 OK: Tasks retrieved successfully
+```json
+[
+  {
+    "id": "uuid",
+    "title": "Task title",
+    "description": "Optional description",
+    "completion_status": false,
+    "user_id": "user uuid",
+    "created_at": "timestamp",
+    "updated_at": "timestamp"
+  }
+]
+```
+- 401 Unauthorized: Invalid/missing token
+
+### GET /tasks/{id}
+Retrieve a specific task for the authenticated user.
+
+**Response:**
+- 200 OK: Task retrieved successfully
+```json
+{
+  "id": "uuid",
+  "title": "Task title",
+  "description": "Optional description",
+  "completion_status": false,
+  "user_id": "user uuid",
+  "created_at": "timestamp",
+  "updated_at": "timestamp"
+}
+```
+- 401 Unauthorized: Invalid/missing token
+- 403 Forbidden: Task doesn't belong to user
+- 404 Not Found: Task doesn't exist
+
+### PUT /tasks/{id}
+Update a specific task for the authenticated user.
+
+**Request Body:**
+```json
+{
+  "title": "Task title (required, 1-200 chars)",
+  "description": "Optional description"
+}
+```
+
+**Response:**
+- 200 OK: Task updated successfully
+```json
+{
+  "id": "uuid",
+  "title": "Task title",
+  "description": "Optional description",
+  "completion_status": false,
+  "user_id": "user uuid",
+  "created_at": "timestamp",
+  "updated_at": "timestamp"
+}
+```
+- 400 Bad Request: Validation error
+- 401 Unauthorized: Invalid/missing token
+- 403 Forbidden: Task doesn't belong to user
+- 404 Not Found: Task doesn't exist
+- 422 Unprocessable Entity: Validation failed
+
+### PATCH /tasks/{id}/complete
+Toggle the completion status of a specific task.
+
+**Response:**
+- 200 OK: Task completion status updated
+```json
+{
+  "id": "uuid",
+  "title": "Task title",
+  "description": "Optional description",
+  "completion_status": true,
+  "user_id": "user uuid",
+  "created_at": "timestamp",
+  "updated_at": "timestamp"
+}
+```
+- 401 Unauthorized: Invalid/missing token
+- 403 Forbidden: Task doesn't belong to user
+- 404 Not Found: Task doesn't exist
+
+### DELETE /tasks/{id}
+Delete a specific task for the authenticated user.
+
+**Response:**
+- 204 No Content: Task deleted successfully
+- 401 Unauthorized: Invalid/missing token
+- 403 Forbidden: Task doesn't belong to user
+- 404 Not Found: Task doesn't exist
