@@ -18,7 +18,7 @@ app = FastAPI(
 # Set all CORS enabled origins
 app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000"],
+        allow_origins=["http://localhost:3000", "https://ultimate-todoflow.vercel.app"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -77,9 +77,3 @@ def create_tables():
     import models  # Import all models to register them with SQLModel
 
     SQLModel.metadata.create_all(engine)
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8000)
