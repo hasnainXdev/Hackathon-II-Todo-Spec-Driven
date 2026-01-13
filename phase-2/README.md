@@ -106,7 +106,7 @@ frontend/
 2. Install dependencies: `npm install`
 3. Set environment variables in `.env.local` file:
    ```
-   NEXT_PUBLIC_API_URL=http://localhost:3000
+   NEXT_PUBLIC_API_URL=http://localhost:8000
    ```
 4. Run the development server: `npm run dev`
 
@@ -124,6 +124,12 @@ frontend/
 - `DELETE /api/v1/tasks/{id}` - Delete a specific task
 - `PATCH /api/v1/tasks/{id}/complete` - Toggle task completion status
 
+### Preferences
+- `GET /api/v1/preferences` - Get all user preferences
+- `GET /api/v1/preferences/{key}` - Get a specific preference
+- `PUT /api/v1/preferences/{key}` - Create or update a preference
+- `DELETE /api/v1/preferences/{key}` - Delete a specific preference
+
 ## Security Features
 - JWT token-based authentication
 - User data isolation (users can only access their own data)
@@ -139,10 +145,13 @@ frontend/
 - `DATABASE_URL`: PostgreSQL database connection string
 - `BETTER_AUTH_SECRET`: Secret key for Better Auth
 - `BETTER_AUTH_URL`: Base URL for Better Auth
+- `JWT_SECRET`: Secret key for JWT token signing
+- `BASE_URL`: Base URL for the application
+- `NEXT_PUBLIC_API_URL`: Frontend environment variable for backend API URL
 
 ## Deployment
 The application can be deployed to any platform that supports both Python (for the backend) and Node.js (for the frontend). For example:
-- Backend: Deploy to platforms like Hugging Face, Railway, or AWS
+- Backend: Deploy to platforms like Heroku, Railway, or AWS
 - Frontend: Deploy to platforms like Vercel, Netlify, or AWS Amplify
 
 ## Error Handling
