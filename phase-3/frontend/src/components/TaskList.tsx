@@ -22,8 +22,9 @@ interface TaskListProps {
 
 // Define types for WebSocket events
 interface TaskEvent {
-  type: 'TASK_CREATED' | 'TASK_UPDATED' | 'TASK_DELETED';
-  payload: any;
+  type: 'TASK_CREATED' | 'TASK_UPDATED' | 'TASK_DELETED' | 'AUTH_SUCCESS' | 'AUTH_ERROR';
+  payload?: any;
+  message?: string;
 }
 
 const TaskList = ({ userId, onTasksUpdate }: TaskListProps) => {
