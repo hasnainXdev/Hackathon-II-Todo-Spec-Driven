@@ -15,7 +15,4 @@ httpx
 jose
 cryptography
 slowapi
-openai
 openai-agents
-mcp-sdk
-better-auth
