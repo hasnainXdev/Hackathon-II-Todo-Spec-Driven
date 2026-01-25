@@ -1,0 +1,483 @@
+openapi: 3.0.3
+info:
+  title: AI-Powered Todo Chatbot API
+  description: API for managing todo tasks through natural language chat interface
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+servers:
+  - url: http://localhost:8000/api
+    description: Local development server
+  - url: https://api.todo-chatbot.example.com
+    description: Production server
+
+paths:
+  /chat:
+    post:
+      summary: Send a message to the AI chatbot
+      description: Process a natural language message and return appropriate response
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Successful response from the AI chatbot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tasks:
+    get:
+      summary: Get user's tasks
+      description: Retrieve all tasks for the authenticated user
+      responses:
+        '200':
+          description: List of user's tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Create a new task
+      description: Create a new task for the authenticated user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tasks/{taskId}:
+    get:
+      summary: Get a specific task
+      description: Retrieve a specific task by ID
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      summary: Update a task
+      description: Update an existing task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Delete a task
+      description: Delete an existing task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Task deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tasks/{taskId}/complete:
+    patch:
+      summary: Mark task as complete/incomplete
+      description: Toggle the completion status of a task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                completed:
+                  type: boolean
+                  description: Whether the task is completed
+              required:
+                - completed
+      responses:
+        '200':
+          description: Task completion status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /conversations:
+    get:
+      summary: Get user's conversations
+      description: Retrieve all conversations for the authenticated user
+      responses:
+        '200':
+          description: List of user's conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Conversation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /conversations/{conversationId}/messages:
+    get:
+      summary: Get messages in a conversation
+      description: Retrieve all messages in a specific conversation
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of messages in the conversation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      properties:
+        message:
+          type: string
+          description: The user's message to the AI chatbot
+          example: "Add a task to buy groceries"
+        conversation_id:
+          type: string
+          format: uuid
+          description: Optional conversation ID to continue an existing conversation
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      required:
+        - message
+
+    ChatResponse:
+      type: object
+      properties:
+        response:
+          type: string
+          description: The AI chatbot's response
+          example: "I've added the task 'buy groceries' to your list."
+        conversation_id:
+          type: string
+          format: uuid
+          description: The conversation ID
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        action_performed:
+          type: string
+          description: The action performed by the AI (e.g., task_created, task_updated)
+          enum: [task_created, task_updated, task_completed, task_deleted, info_retrieval, clarification_needed]
+        task_details:
+          $ref: '#/components/schemas/Task'
+        suggestions:
+          type: array
+          items:
+            type: string
+          description: Optional suggestions for follow-up actions
+          example: ["Show me my tasks", "Mark a task as complete"]
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the task
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        title:
+          type: string
+          description: The task title
+          example: "Buy groceries"
+        description:
+          type: string
+          description: Optional detailed description of the task
+          example: "Milk, eggs, bread, fruits"
+        completed:
+          type: boolean
+          description: Whether the task is completed
+          example: false
+        due_date:
+          type: string
+          format: date-time
+          description: Optional due date for the task
+          example: "2023-12-31T23:59:59Z"
+        priority:
+          type: string
+          description: Task priority level
+          enum: [low, medium, high]
+          example: "medium"
+        created_at:
+          type: string
+          format: date-time
+          description: When the task was created
+          example: "2023-12-01T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: When the task was last updated
+          example: "2023-12-01T10:00:00Z"
+      required:
+        - id
+        - title
+        - completed
+        - created_at
+        - updated_at
+
+    CreateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: The task title
+          example: "Buy groceries"
+        description:
+          type: string
+          description: Optional detailed description of the task
+          example: "Milk, eggs, bread, fruits"
+        due_date:
+          type: string
+          format: date-time
+          description: Optional due date for the task
+          example: "2023-12-31T23:59:59Z"
+        priority:
+          type: string
+          description: Task priority level
+          enum: [low, medium, high]
+          example: "medium"
+      required:
+        - title
+
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: The updated task title
+          example: "Buy groceries and household supplies"
+        description:
+          type: string
+          description: Updated detailed description of the task
+          example: "Milk, eggs, bread, fruits, toilet paper"
+        due_date:
+          type: string
+          format: date-time
+          description: Updated due date for the task
+          example: "2023-12-31T23:59:59Z"
+        priority:
+          type: string
+          description: Updated task priority level
+          enum: [low, medium, high]
+          example: "high"
+
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the conversation
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        title:
+          type: string
+          description: The conversation title
+          example: "Grocery planning"
+        created_at:
+          type: string
+          format: date-time
+          description: When the conversation was created
+          example: "2023-12-01T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: When the conversation was last updated
+          example: "2023-12-01T10:00:00Z"
+      required:
+        - id
+        - title
+        - created_at
+        - updated_at
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the message
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        conversation_id:
+          type: string
+          format: uuid
+          description: ID of the conversation this message belongs to
+          example: "123e4567-e89b-12d3-a456-426614174001"
+        role:
+          type: string
+          description: The role of the message sender
+          enum: [user, assistant]
+          example: "user"
+        content:
+          type: string
+          description: The content of the message
+          example: "Add a task to buy groceries"
+        created_at:
+          type: string
+          format: date-time
+          description: When the message was created
+          example: "2023-12-01T10:00:00Z"
+      required:
+        - id
+        - conversation_id
+        - role
+        - content
+        - created_at
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Invalid input data"
+              details:
+                type: object
+                additionalProperties: true
+                example: {"message": "Message is required"}
+
+    Unauthorized:
+      description: Unauthorized - authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Authentication required"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Resource not found"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Internal server error"
