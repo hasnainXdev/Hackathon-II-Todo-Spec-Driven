@@ -4,7 +4,7 @@ import TaskList from '@/components/TaskList';
 import TaskForm from '@/components/TaskForm';
 import Navbar from '@/components/Navbar';
 import ChatInterface from '@/components/ChatInterface';
-import authClient from '@/lib/auth-client';
+import authClient from '../../lib/auth-client';
 import { useEffect, useState, useCallback } from 'react';
 import { Task } from '@/types/task';
 

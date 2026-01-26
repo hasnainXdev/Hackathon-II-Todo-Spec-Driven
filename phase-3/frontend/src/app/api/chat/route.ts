@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from "@/lib/auth";
-import { getConversationMessages } from "@/lib/api-client";
+import { auth } from "../../../lib/auth";
+import { getConversationMessages } from "../../../lib/api-client";
 
 // Helper function to get backend token from session
 async function getBackendTokenFromSession(headers: Headers) {
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Import the functions here to avoid circular dependencies
-    const { createConversationWithMessage, addMessageToConversation } = await import("@/lib/api-client");
+    const { createConversationWithMessage, addMessageToConversation } = await import("../../../lib/api-client");
 
     let result;
 

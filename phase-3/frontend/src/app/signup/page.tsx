@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import authClient from '@/lib/auth-client';
+import authClient from '../../lib/auth-client';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
