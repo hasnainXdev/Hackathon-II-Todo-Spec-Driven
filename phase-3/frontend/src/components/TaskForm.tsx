@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { authenticatedApi } from '../lib/api';
+import { authenticatedApi } from '@/lib/api';
 import { Task } from '@/types/task';
 import toast from 'react-hot-toast';
 

@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import authClient from '../lib/auth-client';
+import authClient from '@/lib/auth-client';
 import { FaPaperPlane, FaRobot, FaUser, FaVolumeUp, FaKeyboard } from 'react-icons/fa';
 import {
   createConversationWithMessage,
   addMessageToConversation,
   getConversationMessages
-} from '../lib/api-client';
+} from '@/lib/api-client';
 
 interface Message {
   id: string;

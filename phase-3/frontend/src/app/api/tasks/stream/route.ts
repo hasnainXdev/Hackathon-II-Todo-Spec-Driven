@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from "../../../../../lib/auth";
+import { auth } from '@/lib/auth';
 
 // This is a simplified implementation that simulates real-time updates
 // In a production environment, you would use a proper pub/sub system like Redis, RabbitMQ, etc.
