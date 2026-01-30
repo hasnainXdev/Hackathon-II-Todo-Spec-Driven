@@ -1,0 +1,114 @@
+# API Contract: Todo Chatbot Backend Service
+
+## Overview
+This document describes the API endpoints for the Todo Chatbot backend service that will be deployed in the Kubernetes cluster.
+
+## Base URL
+Internal service URL: `http://todo-chatbot-backend:8080`
+
+## Endpoints
+
+### 1. Get All Todos
+- **Method**: GET
+- **Path**: `/api/todos`
+- **Description**: Retrieve all todos for the authenticated user
+- **Headers**: 
+  - Authorization: Bearer {token}
+- **Response**: 
+  - 200: Array of todo objects
+  - 401: Unauthorized
+  - 500: Server error
+
+### 2. Create Todo
+- **Method**: POST
+- **Path**: `/api/todos`
+- **Description**: Create a new todo item
+- **Headers**: 
+  - Authorization: Bearer {token}
+  - Content-Type: application/json
+- **Request Body**: 
+  - title: string (required)
+  - description: string (optional)
+  - completed: boolean (default: false)
+- **Response**: 
+  - 201: Created todo object
+  - 400: Invalid request
+  - 401: Unauthorized
+  - 500: Server error
+
+### 3. Update Todo
+- **Method**: PUT
+- **Path**: `/api/todos/{id}`
+- **Description**: Update an existing todo item
+- **Headers**: 
+  - Authorization: Bearer {token}
+  - Content-Type: application/json
+- **Request Body**: 
+  - title: string (optional)
+  - description: string (optional)
+  - completed: boolean (optional)
+- **Response**: 
+  - 200: Updated todo object
+  - 400: Invalid request
+  - 401: Unauthorized
+  - 404: Todo not found
+  - 500: Server error
+
+### 4. Delete Todo
+- **Method**: DELETE
+- **Path**: `/api/todos/{id}`
+- **Description**: Delete a todo item
+- **Headers**: 
+  - Authorization: Bearer {token}
+- **Response**: 
+  - 204: Successfully deleted
+  - 401: Unauthorized
+  - 404: Todo not found
+  - 500: Server error
+
+### 5. Health Check
+- **Method**: GET
+- **Path**: `/health`
+- **Description**: Check the health status of the backend service
+- **Response**: 
+  - 200: Health status object
+  - 500: Server error
+
+## Data Models
+
+### Todo Object
+```
+{
+  "id": "string",
+  "title": "string",
+  "description": "string",
+  "completed": "boolean",
+  "createdAt": "timestamp",
+  "updatedAt": "timestamp"
+}
+```
+
+### Health Status Object
+```
+{
+  "status": "string",
+  "timestamp": "timestamp",
+  "dependencies": {
+    "database": "string"
+  }
+}
+```
+
+## Authentication
+All endpoints except `/health` require authentication via JWT token in the Authorization header.
+
+## Error Response Format
+```
+{
+  "error": {
+    "code": "string",
+    "message": "string",
+    "details": "object"
+  }
+}
+```
