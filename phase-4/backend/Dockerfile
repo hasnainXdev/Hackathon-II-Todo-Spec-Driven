@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and install Python dependencies
-COPY backend/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 FROM python:3.13-slim AS runner
@@ -19,11 +19,12 @@ RUN groupadd -g 1001 python && \
 
 WORKDIR /app
 
-# Copy installed packages from builder stage
+# Copy installed packages AND executables from builder stage
 COPY --from=builder /usr/local/lib/python3.13 /usr/local/lib/python3.13
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
-COPY --chown=python:python backend/. .
+COPY --chown=python:python . .
 
 # Switch to non-root user
 USER python
