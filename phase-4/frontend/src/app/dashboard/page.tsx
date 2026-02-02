@@ -7,11 +7,14 @@ import ChatInterface from '@/components/ChatInterface';
 import authClient from '@/lib/auth-client';
 import { useEffect, useState, useCallback } from 'react';
 import { Task } from '@/types/task';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   const { data: session, isPending } = authClient.useSession();
   const [userId, setUserId] = useState<string | null>(null);
   const [tasks, setTasks] = useState<FormattedTask[]>([]);
+
+  const router = useRouter();
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -61,10 +64,12 @@ export default function DashboardPage() {
   }
 
   // If not authenticated, redirect to login (this would normally be handled by a router)
-  if (!session?.user) {
-    window.location.href = "/login";
-    return null; // Prevent rendering while redirecting
-  }
+  useEffect(() => {
+    if (!isPending && !session?.user) {
+      router.replace("/login");
+    }
+  }, [isPending, session]);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-gray-100">
