@@ -1,0 +1,68 @@
+2026-01-19 20:30:32,184 - src.services.task_operation_service - INFO - log_event:59 - Created task task123 for user user123
+2026-01-19 20:30:32,185 - src.services.task_operation_service - ERROR - log_event:63 - Error creating task for user user123: 'Task' object has no attribute 'due_date'
+2026-01-19 20:38:57,134 - src.services.task_operation_service - INFO - log_event:59 - Created task task123 for user user123
+2026-01-19 20:41:04,701 - src.services.task_operation_service - INFO - log_event:59 - Created task task123 for user user123
+2026-01-19 20:41:04,794 - src.services.task_operation_service - INFO - log_event:59 - Recognized intent: unknown for user user123
+2026-01-19 20:41:04,810 - src.services.task_operation_service - ERROR - log_event:63 - Error creating task for user user123: Database error
+2026-01-19 20:41:04,837 - src.services.task_operation_service - INFO - log_event:59 - Updated task task1 for user user123
+2026-01-19 20:41:04,845 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-19 20:41:04,867 - src.services.task_operation_service - INFO - log_event:59 - Marked task task1 as completed for user user123
+2026-01-19 23:18:42,852 - src.services.task_operation_service - INFO - log_event:59 - Created task task123 for user user123
+2026-01-19 23:18:42,880 - src.services.task_operation_service - INFO - log_event:59 - Recognized intent: unknown for user user123
+2026-01-19 23:18:42,886 - src.services.task_operation_service - ERROR - log_event:63 - Error creating task for user user123: Database error
+2026-01-19 23:18:42,899 - src.services.task_operation_service - INFO - log_event:59 - Updated task task1 for user user123
+2026-01-19 23:18:42,907 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-19 23:18:42,914 - src.services.task_operation_service - INFO - log_event:59 - Marked task task1 as completed for user user123
+2026-01-22 21:51:56,993 - src.services.task_operation_service - INFO - log_event:59 - Created task task123 for user user123
+2026-01-22 21:51:57,037 - src.services.task_operation_service - INFO - log_event:59 - Recognized intent: unknown for user user123
+2026-01-22 21:51:57,054 - src.services.task_operation_service - ERROR - log_event:63 - Error creating task for user user123: Database error
+2026-01-22 21:51:57,066 - src.services.task_operation_service - INFO - log_event:59 - Updated task task1 for user user123
+2026-01-22 21:51:57,083 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-22 21:51:57,103 - src.services.task_operation_service - INFO - log_event:59 - Marked task task1 as completed for user user123
+2026-01-23 20:38:39,160 - src.services.task_operation_service - INFO - log_event:59 - Created task task123 for user user123
+2026-01-23 20:38:39,182 - src.services.task_operation_service - INFO - log_event:59 - Recognized intent: unknown for user user123
+2026-01-23 20:38:39,191 - src.services.task_operation_service - ERROR - log_event:63 - Error creating task for user user123: Database error
+2026-01-23 20:38:39,203 - src.services.task_operation_service - INFO - log_event:59 - Updated task task1 for user user123
+2026-01-23 20:38:39,214 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-23 20:38:39,225 - src.services.task_operation_service - INFO - log_event:59 - Marked task task1 as completed for user user123
+2026-01-23 20:59:59,912 - src.services.task_operation_service - INFO - log_event:59 - Created task task123 for user user123
+2026-01-23 20:59:59,930 - src.services.task_operation_service - INFO - log_event:59 - Recognized intent: unknown for user user123
+2026-01-23 20:59:59,941 - src.services.task_operation_service - ERROR - log_event:63 - Error creating task for user user123: Database error
+2026-01-23 20:59:59,950 - src.services.task_operation_service - INFO - log_event:59 - Updated task task1 for user user123
+2026-01-23 20:59:59,962 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-23 20:59:59,972 - src.services.task_operation_service - INFO - log_event:59 - Marked task task1 as completed for user user123
+2026-01-23 21:16:31,848 - src.services.task_operation_service - INFO - log_event:59 - Created task task123 for user user123
+2026-01-23 21:16:31,874 - src.services.task_operation_service - INFO - log_event:59 - Recognized intent: unknown for user user123
+2026-01-23 21:16:31,885 - src.services.task_operation_service - ERROR - log_event:63 - Error creating task for user user123: Database error
+2026-01-23 21:16:31,902 - src.services.task_operation_service - INFO - log_event:59 - Updated task task1 for user user123
+2026-01-23 21:16:31,916 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-23 21:16:31,931 - src.services.task_operation_service - INFO - log_event:59 - Marked task task1 as completed for user user123
+2026-01-23 23:34:04,967 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-23 23:34:18,594 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-23 23:41:19,083 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-23 23:41:30,615 - src.services.task_operation_service - INFO - log_event:59 - Created task task123 for user user123
+2026-01-23 23:41:30,641 - src.services.task_operation_service - INFO - log_event:59 - Recognized intent: unknown for user user123
+2026-01-23 23:41:30,650 - src.services.task_operation_service - ERROR - log_event:63 - Error creating task for user user123: Database error
+2026-01-23 23:41:30,659 - src.services.task_operation_service - INFO - log_event:59 - Updated task task1 for user user123
+2026-01-23 23:41:30,670 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-23 23:41:30,679 - src.services.task_operation_service - INFO - log_event:59 - Marked task task1 as completed for user user123
+2026-01-24 01:07:54,456 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-24 01:14:28,254 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-24 01:14:43,716 - src.services.task_operation_service - INFO - log_event:59 - Created task task123 for user user123
+2026-01-24 01:14:43,747 - src.services.task_operation_service - INFO - log_event:59 - Recognized intent: unknown for user user123
+2026-01-24 01:14:43,759 - src.services.task_operation_service - ERROR - log_event:63 - Error creating task for user user123: Database error
+2026-01-24 01:14:43,770 - src.services.task_operation_service - INFO - log_event:59 - Updated task task1 for user user123
+2026-01-24 01:14:43,782 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-24 01:14:43,795 - src.services.task_operation_service - INFO - log_event:59 - Marked task task1 as completed for user user123
+2026-01-24 17:14:22,551 - src.services.task_operation_service - INFO - log_event:59 - Created task task123 for user user123
+2026-01-24 17:14:22,579 - src.services.task_operation_service - INFO - log_event:59 - Recognized intent: unknown for user user123
+2026-01-24 17:14:22,593 - src.services.task_operation_service - ERROR - log_event:63 - Error creating task for user user123: Database error
+2026-01-24 17:14:22,605 - src.services.task_operation_service - INFO - log_event:59 - Updated task task1 for user user123
+2026-01-24 17:14:22,616 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-24 17:14:22,627 - src.services.task_operation_service - INFO - log_event:59 - Marked task task1 as completed for user user123
+2026-01-24 17:15:11,145 - src.services.task_operation_service - INFO - log_event:59 - Created task task123 for user user123
+2026-01-24 17:15:11,173 - src.services.task_operation_service - INFO - log_event:59 - Recognized intent: unknown for user user123
+2026-01-24 17:15:11,183 - src.services.task_operation_service - ERROR - log_event:63 - Error creating task for user user123: Database error
+2026-01-24 17:15:11,193 - src.services.task_operation_service - INFO - log_event:59 - Updated task task1 for user user123
+2026-01-24 17:15:11,203 - src.services.task_operation_service - INFO - log_event:59 - Deleted task task1 for user user123
+2026-01-24 17:15:11,213 - src.services.task_operation_service - INFO - log_event:59 - Marked task task1 as completed for user user123

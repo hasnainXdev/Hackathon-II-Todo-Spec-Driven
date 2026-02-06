@@ -1,0 +1,601 @@
+openapi: 3.0.3
+info:
+  title: Chat API for Event-Driven Todo System
+  description: API for managing tasks via chat commands in an event-driven architecture. Enhanced from the AI-powered todo chatbot from Phase 3 with full event sourcing capabilities.
+  version: 1.0.0
+servers:
+  - url: https://chat-api.todo-system.com
+    description: Production Chat API Server
+  - url: http://localhost:8000
+    description: Local Chat API Server
+
+paths:
+  /api/v1/chat:
+    post:
+      summary: Process a chat command
+      description: Accepts a chat command and processes it to perform task operations. This endpoint carries forward the chat interface functionality from Phase 3's AI-powered todo chatbot.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCommand'
+      responses:
+        '200':
+          description: Command processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '400':
+          description: Invalid command format
+        '500':
+          description: Internal server error
+
+  /api/v1/tasks:
+    get:
+      summary: List tasks
+      description: Retrieve a list of tasks with optional filtering and sorting
+      parameters:
+        - name: priority
+          in: query
+          description: Filter by priority level
+          required: false
+          schema:
+            type: string
+            enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        - name: completed
+          in: query
+          description: Filter by completion status
+          required: false
+          schema:
+            type: boolean
+        - name: tag
+          in: query
+          description: Filter by tag
+          required: false
+          schema:
+            type: string
+        - name: sort_by
+          in: query
+          description: Field to sort by
+          required: false
+          schema:
+            type: string
+            enum: [created_at, due_date, priority]
+        - name: order
+          in: query
+          description: Sort order
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  total_count:
+                    type: integer
+        '500':
+          description: Internal server error
+    post:
+      summary: Create a task
+      description: Creates a new task from the provided details. Publishes TASK_CREATED event to Kafka for downstream processing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid task data
+        '500':
+          description: Internal server error
+
+  /api/v1/tasks/{taskId}:
+    get:
+      summary: Get a specific task
+      description: Retrieve details of a specific task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: ID of the task to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+        '500':
+          description: Internal server error
+    put:
+      summary: Update a task
+      description: Updates an existing task with new information. Publishes TASK_UPDATED event to Kafka for downstream processing.
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: ID of the task to update
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid task data
+        '404':
+          description: Task not found
+        '500':
+          description: Internal server error
+    delete:
+      summary: Delete a task
+      description: Deletes a specific task. Publishes TASK_DELETED event to Kafka for downstream processing.
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: ID of the task to delete
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Task deleted successfully
+        '404':
+          description: Task not found
+        '500':
+          description: Internal server error
+
+  /api/v1/tasks/{taskId}/complete:
+    post:
+      summary: Mark a task as complete
+      description: Marks a specific task as completed. Publishes TASK_COMPLETED event to Kafka which triggers downstream services like Recurring Task Service.
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: ID of the task to mark as complete
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task marked as complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+        '500':
+          description: Internal server error
+
+  /api/v1/conversations:
+    get:
+      summary: List conversations
+      description: Retrieve a list of chat conversations for the authenticated user (enhanced from Phase 3's conversation functionality)
+      parameters:
+        - name: status
+          in: query
+          description: Filter by conversation status
+          required: false
+          schema:
+            type: string
+            enum: [ACTIVE, ARCHIVED]
+        - name: limit
+          in: query
+          description: Maximum number of conversations to return
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          description: Offset for pagination
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Conversation'
+                  total_count:
+                    type: integer
+        '500':
+          description: Internal server error
+    post:
+      summary: Create a conversation
+      description: Creates a new chat conversation (carried forward from Phase 3's AI chatbot functionality)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConversationRequest'
+      responses:
+        '201':
+          description: Conversation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+        '400':
+          description: Invalid conversation data
+        '500':
+          description: Internal server error
+
+  /api/v1/conversations/{conversationId}/messages:
+    get:
+      summary: Get messages in a conversation
+      description: Retrieve messages in a specific conversation (enhanced from Phase 3's messaging functionality)
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          description: ID of the conversation
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Maximum number of messages to return
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          description: Offset for pagination
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+                  total_count:
+                    type: integer
+        '404':
+          description: Conversation not found
+        '500':
+          description: Internal server error
+    post:
+      summary: Send a message
+      description: Send a message in a specific conversation (enhanced from Phase 3's messaging functionality)
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          description: ID of the conversation
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '400':
+          description: Invalid message data
+        '404':
+          description: Conversation not found
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    ChatCommand:
+      type: object
+      required:
+        - command
+        - userId
+      properties:
+        command:
+          type: string
+          description: The chat command to process
+          example: "Add task: Buy groceries - due tomorrow - high priority"
+        userId:
+          type: string
+          description: ID of the user issuing the command
+          example: "user-12345"
+    
+    ChatResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the command was processed successfully
+        message:
+          type: string
+          description: Response message to the user
+        taskId:
+          type: string
+          description: ID of the task affected (if applicable)
+        eventType:
+          type: string
+          description: Type of event generated by the command
+        eventId:
+          type: string
+          description: ID of the event generated by the command (Phase 5 addition)
+    
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - created_at
+        - user_id
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the task
+          example: "task-67890"
+        title:
+          type: string
+          description: Brief description of the task
+          example: "Buy groceries"
+        description:
+          type: string
+          description: Detailed explanation of the task
+          example: "Get milk, bread, eggs, and fruit"
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+          description: Importance level of the task
+          example: "HIGH"
+        tags:
+          type: array
+          items:
+            type: string
+          description: User-defined categories for organizing tasks
+          example: ["shopping", "errands"]
+        due_date:
+          type: string
+          format: date-time
+          description: Deadline for task completion
+          example: "2023-10-15T10:00:00Z"
+        completed:
+          type: boolean
+          description: Status indicating if the task is completed
+          example: false
+        completed_at:
+          type: string
+          format: date-time
+          description: Timestamp when the task was completed
+        recurrence_rule:
+          type: string
+          description: Rule defining how the task repeats
+          example: "weekly on Tuesday"
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the task was created
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the task was last modified
+        user_id:
+          type: string
+          description: Identifier of the user who owns the task
+          example: "user-12345"
+        last_event_id:
+          type: string
+          description: Reference to the last event that modified this task (Phase 5 addition for event sourcing)
+        version:
+          type: integer
+          description: Optimistic locking version for concurrent updates (Phase 5 addition)
+    
+    CreateTaskRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: Brief description of the task
+          example: "Buy groceries"
+        description:
+          type: string
+          description: Detailed explanation of the task
+          example: "Get milk, bread, eggs, and fruit"
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+          description: Importance level of the task
+          example: "HIGH"
+        tags:
+          type: array
+          items:
+            type: string
+          description: User-defined categories for organizing tasks
+          example: ["shopping", "errands"]
+        due_date:
+          type: string
+          format: date-time
+          description: Deadline for task completion
+          example: "2023-10-15T10:00:00Z"
+        recurrence_rule:
+          type: string
+          description: Rule defining how the task repeats
+          example: "weekly on Tuesday"
+    
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Brief description of the task
+          example: "Buy groceries and household items"
+        description:
+          type: string
+          description: Detailed explanation of the task
+          example: "Get milk, bread, eggs, fruit, and cleaning supplies"
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+          description: Importance level of the task
+          example: "CRITICAL"
+        tags:
+          type: array
+          items:
+            type: string
+          description: User-defined categories for organizing tasks
+          example: ["shopping", "errands", "urgent"]
+        due_date:
+          type: string
+          format: date-time
+          description: Deadline for task completion
+          example: "2023-10-14T18:00:00Z"
+        completed:
+          type: boolean
+          description: Status indicating if the task is completed
+          example: true
+    
+    Conversation:
+      type: object
+      required:
+        - conversation_id
+        - user_id
+        - title
+        - created_at
+      properties:
+        conversation_id:
+          type: string
+          description: Unique identifier for the conversation
+          example: "conv-12345"
+        user_id:
+          type: string
+          description: Reference to the user participating in the conversation
+          example: "user-67890"
+        title:
+          type: string
+          description: Auto-generated title for the conversation
+          example: "Task management discussion"
+        created_at:
+          type: string
+          format: date-time
+          description: When the conversation was started
+          example: "2023-10-10T09:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: When the conversation was last updated
+          example: "2023-10-10T10:30:00Z"
+        status:
+          type: string
+          enum: [ACTIVE, ARCHIVED]
+          description: Current status of the conversation
+          example: "ACTIVE"
+    
+    CreateConversationRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Optional title for the conversation
+          example: "New project planning"
+    
+    Message:
+      type: object
+      required:
+        - message_id
+        - conversation_id
+        - sender_type
+        - sender_id
+        - content
+        - created_at
+      properties:
+        message_id:
+          type: string
+          description: Unique identifier for the message
+          example: "msg-54321"
+        conversation_id:
+          type: string
+          description: Reference to the conversation this message belongs to
+          example: "conv-12345"
+        sender_type:
+          type: string
+          enum: [USER, SYSTEM, ASSISTANT]
+          description: Who sent the message
+          example: "USER"
+        sender_id:
+          type: string
+          description: Reference to the sender (user or system)
+          example: "user-67890"
+        content:
+          type: string
+          description: The actual message content
+          example: "Can you create a task for the project deadline?"
+        created_at:
+          type: string
+          format: date-time
+          description: When the message was sent
+          example: "2023-10-10T09:15:00Z"
+        related_task_id:
+          type: string
+          description: Reference to a task this message relates to
+          example: "task-67890"
+    
+    SendMessageRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          description: The message content to send
+          example: "What's the status of the project?"

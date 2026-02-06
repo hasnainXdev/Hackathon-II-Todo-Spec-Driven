@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Task Update Event Schema",
+  "description": "Schema for task update events in the event-driven todo system",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "description": "Unique identifier for the event"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["TASK_CREATED", "TASK_UPDATED", "TASK_COMPLETED", "TASK_DELETED", "TASK_ASSIGNED", "TASK_PRIORITY_CHANGED"],
+      "description": "Type of the event"
+    },
+    "aggregate_id": {
+      "type": "string",
+      "description": "ID of the entity the event relates to (usually Task.id)"
+    },
+    "aggregate_type": {
+      "type": "string",
+      "description": "Type of aggregate (e.g., 'Task', 'User')"
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "description": "ID of the task that was updated"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the task"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the task"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+          "description": "Priority level of the task"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "User-defined categories for organizing tasks"
+        },
+        "due_date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Deadline for task completion"
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Status indicating if the task is completed"
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the task was completed"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the task was last modified"
+        },
+        "user_id": {
+          "type": "string",
+          "description": "ID of the user who owns the task"
+        },
+        "updated_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of fields that were updated in this event"
+        }
+      },
+      "required": ["task_id", "title", "user_id"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the event occurred"
+    },
+    "user_context": {
+      "type": "object",
+      "description": "Information about the user who initiated the action",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "description": "ID of the user"
+        }
+      },
+      "required": ["user_id"]
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "Links related events together (from the same user command)"
+    },
+    "causation_id": {
+      "type": "string",
+      "description": "References the event that caused this event"
+    },
+    "version": {
+      "type": "integer",
+      "description": "Version of the event schema"
+    },
+    "source_service": {
+      "type": "string",
+      "description": "Name of the service that generated the event"
+    }
+  },
+  "required": ["event_id", "event_type", "aggregate_id", "aggregate_type", "payload", "timestamp", "user_context", "version", "source_service"]
+}

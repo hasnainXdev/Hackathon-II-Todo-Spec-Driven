@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recurring-task-service
+  labels:
+    app: recurring-task-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: recurring-task-service
+  template:
+    metadata:
+      labels:
+        app: recurring-task-service
+    spec:
+      containers:
+      - name: recurring-task-service
+        image: todo-recurring-task-service:latest
+        env:
+        - name: DATABASE_URL
+          value: "postgresql://user:password@postgres-service:5432/todo_chatbot"
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "my-cluster-kafka-bootstrap:9092"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: recurring-task-service
+spec:
+  selector:
+    app: recurring-task-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
