@@ -38,7 +38,7 @@ class Task(SQLModel, table=True):
     user_id: UUID
     last_event_id: Optional[UUID] = Field(default=None)
     version: int = Field(default=1)  # For optimistic locking
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Ensure updated_at is set to current time when initialized
@@ -72,39 +72,3 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_active: Optional[datetime] = Field(default=None)
     timezone: str = Field(default="UTC")
-
-
-class Service(SQLModel, table=True):
-    __tablename__ = "services"
-
-    service_id: str = Field(primary_key=True)
-    service_name: str
-    description: str
-    consumes_topics: List[str] = Field(default=None, sa_column_kwargs={"type_": JSON})
-    produces_topics: List[str] = Field(default=None, sa_column_kwargs={"type_": JSON})
-    status: str = Field(sa_column_kwargs={"comment": "HEALTHY, DEGRADED, UNHEALTHY, OFFLINE"})
-    last_heartbeat: Optional[datetime] = Field(default=None)
-    partition_assignment: List[int] = Field(default=None, sa_column_kwargs={"type_": JSON})
-
-
-class Conversation(SQLModel, table=True):
-    __tablename__ = "conversations"
-
-    conversation_id: UUID = Field(default_factory=uuid4, primary_key=True)
-    user_id: UUID
-    title: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
-    status: str = Field(sa_column_kwargs={"comment": "ACTIVE, ARCHIVED"})
-
-
-class Message(SQLModel, table=True):
-    __tablename__ = "messages"
-
-    message_id: UUID = Field(default_factory=uuid4, primary_key=True)
-    conversation_id: UUID
-    sender_type: str = Field(sa_column_kwargs={"comment": "USER, SYSTEM, ASSISTANT"})
-    sender_id: UUID
-    content: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    related_task_id: Optional[UUID] = Field(default=None)

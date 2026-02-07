@@ -5,12 +5,14 @@ from datetime import datetime
 from sqlmodel import SQLModel, Field, create_engine, Session, select
 from uuid import UUID, uuid4
 from typing import Optional, List
+from dotenv import load_dotenv
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'chat-api'))
+# Load environment variables from .env file
+load_dotenv()
 
-# Import the Event model from the chat-api service
+# Import the Event model from the audit service's own models
 from src.models.task import Event
 
 logging.basicConfig(level=logging.INFO)

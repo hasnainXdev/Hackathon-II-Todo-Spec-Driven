@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Database URL - defaults to PostgreSQL, but can be overridden with environment variable
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/todo_chatbot")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/todo_recurring_task")
 
 # Create the database engine
 engine = create_engine(DATABASE_URL, echo=False)  # Set echo=True for SQL debugging
@@ -49,9 +49,9 @@ def set_updated_at_timestamp(mapper, connection, target):
 def init_database():
     """Initialize the database with required setup."""
     logger.info("Initializing database...")
-    
+
     # Create all tables
     create_db_and_tables()
-    
+
     # Additional initialization can be added here
     logger.info("Database initialization completed.")

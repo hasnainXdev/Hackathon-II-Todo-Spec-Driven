@@ -4,13 +4,15 @@ import logging
 from datetime import datetime, timedelta
 from sqlmodel import Session, select
 from uuid import uuid4
+from dotenv import load_dotenv
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'chat-api'))
+# Load environment variables from .env file
+load_dotenv()
 
 from src.models.task import Task, PriorityEnum
-from src.database.init import get_db_session
+from src.database import get_db_session
 from src.kafka.producer import get_kafka_producer
 
 logging.basicConfig(level=logging.INFO)
