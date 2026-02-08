@@ -1,5 +1,5 @@
 # Multi-stage build for Next.js frontend
-FROM node:18-alpine AS base
+FROM node:22-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -23,9 +23,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Environment variables for build time
-ENV NEXT_PUBLIC_FASTAPI_API_URL=https://your-backend-domain.com/api/v1
-ENV NEXT_PUBLIC_BETTER_AUTH_URL=https://your-domain.com/api/auth
-ENV NEXT_PUBLIC_CHATKIT_API_URL=https://your-backend-domain.com/api/chat
+ENV NEXT_PUBLIC_FASTAPI_API_URL=http://chat-api:8000/api/v1
+ENV NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3000/api/auth
+ENV NEXT_PUBLIC_CHATKIT_API_URL=http://chat-api:8000/api/chat
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry

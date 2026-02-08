@@ -15,4 +15,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Run the application
-CMD ["python", "-c", "from src.main import NotificationService; service = NotificationService(); service.subscribe_to_reminder_topic(); service.start_listening()"]
+CMD ["python", "src/main.py"]

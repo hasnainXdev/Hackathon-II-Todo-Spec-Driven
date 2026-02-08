@@ -15,4 +15,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Run the application
-CMD ["python", "-c", "from src.main import RecurringTaskService; service = RecurringTaskService(); service.subscribe_to_task_completion_topic(); service.start_listening()"]
+CMD ["python", "src/main.py"]
