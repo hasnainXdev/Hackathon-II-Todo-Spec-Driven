@@ -1,11 +1,13 @@
 # Phase 5: Advanced Cloud Deployment & Event-Driven Pipeline - Implementation Summary
 
 ## Overview
+
 This document summarizes the complete implementation of Phase 5: Advanced Cloud Deployment & Event-Driven Pipeline for the Todo Chatbot system. The implementation transforms the monolithic architecture from previous phases into a fully event-driven system using Kafka, Kubernetes, and Dapr.
 
 ## Architecture Components
 
 ### Backend Services
+
 1. **Chat API Service** (`services/chat-api/`)
    - Handles user requests and chat commands
    - Publishes events to Kafka topics
@@ -33,6 +35,7 @@ This document summarizes the complete implementation of Phase 5: Advanced Cloud 
    - Ensures UI consistency across devices
 
 ### Infrastructure Components
+
 - **Kafka** (via Strimzi operator) - Event backbone
 - **PostgreSQL** - Primary data storage
 - **Dapr** - State and secret management only
@@ -71,6 +74,7 @@ This document summarizes the complete implementation of Phase 5: Advanced Cloud 
 ## Deployment
 
 ### Local Deployment (Minikube)
+
 ```bash
 # Start Minikube
 minikube start --memory=8192 --cpus=4
@@ -90,6 +94,7 @@ kubectl apply -f infrastructure/k8s/overlays/minikube/
 ```
 
 ### Cloud Deployment
+
 Scripts provided in `scripts/` directory for provisioning and deploying to cloud Kubernetes clusters (OKE, AKS, GKE).
 
 ## Technologies Used
@@ -112,7 +117,7 @@ Scripts provided in `scripts/` directory for provisioning and deploying to cloud
 ✅ Real-time synchronization between clients  
 ✅ Search, filter, and sort functionality  
 ✅ Deployable on both Minikube and cloud Kubernetes  
-✅ Frontend integrated with event-driven backend  
+✅ Frontend integrated with event-driven backend
 
 ## Files Created
 

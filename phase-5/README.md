@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is the Phase 5 implementation of the Event-Driven Todo Chatbot System. It demonstrates real-world distributed systems using Kafka, Kubernetes, and Dapr. The system transforms the monolithic architecture from previous phases into a fully event-driven system with multiple microservices that communicate asynchronously via Kafka events.
+This is the Phase 5 implementation of the Event-Driven Todo Chatbot System. It demonstrates real-world distributed systems using Kafka, Docker Compose, and microservices. The system transforms the monolithic architecture from previous phases into a fully event-driven system with multiple microservices that communicate asynchronously via Kafka events.
 
 ## Architecture
 
@@ -14,18 +14,15 @@ This is the Phase 5 implementation of the Event-Driven Todo Chatbot System. It d
 5. **Sync Service** - Provides real-time updates via WebSockets
 
 ### Infrastructure
-- **Kafka** - Event backbone using Strimzi operator
+- **Kafka** - Event backbone using Confluent Kafka
 - **PostgreSQL** - Primary data storage
-- **Dapr** - State and secret management only
-- **Kubernetes** - Container orchestration
+- **Docker Compose** - Local container orchestration
 
 ## Prerequisites
 
 - Docker and Docker Compose
-- Kubernetes cluster (Minikube for local development)
-- kubectl
-- Helm (optional)
 - Python 3.11+
+- Node.js 18+ (for frontend)
 
 ## Directory Structure
 
@@ -37,82 +34,98 @@ phase-5/
 │   ├── recurring-task-service/ # Recurring task logic
 │   ├── audit-service/         # Audit trail
 │   └── sync-service/          # Real-time sync
-├── infrastructure/
-│   ├── k8s/                  # Kubernetes manifests
-│   ├── dapr/                 # Dapr components
-│   └── helm/                 # Helm charts
 ├── frontend/                 # Next.js frontend
 ├── specs/                    # Specifications
 ├── scripts/                  # Utility scripts
-└── docker/                   # Docker configurations
+├── docker-compose.yml        # Docker Compose orchestration
+└── test_services_setup.sh    # Test script
 ```
 
-## Local Development Setup
+## Local Development Setup (Recommended Method)
 
-### 1. Start Minikube
+### 1. Clone and Navigate to Project
 
 ```bash
-minikube start --memory=8192 --cpus=4
-minikube addons enable ingress
-minikube addons enable metrics-server
+cd /mnt/d/it-course/hackathons/hackathon-II-todo-spec-driven/phase-5
 ```
 
-### 2. Deploy Kafka to Minikube
+### 2. Start All Services with Docker Compose
 
 ```bash
-# Deploy Strimzi Kafka operator
-kubectl create -f https://strimzi.io/install/latest?namespace=kafka -n kafka
-kubectl wait --for=condition=ready pod -l name=strimzi-cluster-operator -n kafka
+# Build and start all services
+docker compose up --build
 
-# Create a Kafka cluster
-kubectl apply -f infrastructure/k8s/components/kafka/cluster.yaml
-kubectl wait --for=condition=ready kafka/my-cluster -n default
-
-# Create required topics
-kubectl apply -f infrastructure/k8s/components/kafka/topics/
+# Or run in detached mode
+docker compose up --build -d
 ```
 
-### 3. Deploy PostgreSQL
+This will start:
+- PostgreSQL database
+- Kafka and Zookeeper
+- Chat API Service (port 8000)
+- Audit Service
+- Recurring Task Service
+- Notification Service
+- Sync Service (port 8001)
+- Frontend (port 3000)
+
+### 3. Access the Application
+
+Once all services are running:
+- **Frontend**: http://localhost:3000
+- **Chat API**: http://localhost:8000
+- **Health Check**: http://localhost:8000/health
+- **Sync Service**: http://localhost:8001
+
+## Alternative: Manual Service Startup
+
+If you prefer to run services individually:
+
+### 1. Start Infrastructure Services
 
 ```bash
-kubectl apply -f infrastructure/k8s/components/postgres.yaml
-kubectl wait --for=condition=ready pod -l app=postgres
+# Start PostgreSQL and Kafka separately
+docker run --name todo-postgres -e POSTGRES_DB=todo_app -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres:15
+
+# Start Zookeeper
+docker run --name zookeeper -e ZOOKEEPER_CLIENT_PORT=2181 -e ZOOKEEPER_TICK_TIME=2000 -p 2181:2181 -d confluentinc/cp-zookeeper:latest
+
+# Start Kafka
+docker run --name kafka --link zookeeper:zookeeper -e KAFKA_BROKER_ID=1 -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 -e KAFKA_AUTO_CREATE_TOPICS_ENABLE=true -p 9092:9092 -d confluentinc/cp-kafka:latest
 ```
 
-### 4. Deploy Dapr Components
+### 2. Run Individual Services
+
+For each service, navigate to its directory and install dependencies:
 
 ```bash
-kubectl apply -f infrastructure/dapr/components/
+# Chat API Service
+cd services/chat-api
+pip install -r requirements.txt
+uvicorn src.main:app --host 0.0.0.0 --port 8000
+
+# Audit Service
+cd services/audit-service
+pip install -r requirements.txt
+python src/main.py
+
+# Recurring Task Service
+cd services/recurring-task-service
+pip install -r requirements.txt
+python src/main.py
+
+# Notification Service
+cd services/notification-service
+pip install -r requirements.txt
+python src/main.py
+
+# Sync Service
+cd services/sync-service
+pip install -r requirements.txt
+uvicorn src.main:app --host 0.0.0.0 --port 8000
 ```
 
-### 5. Build and Deploy Services
-
-```bash
-# Build container images
-cd services/chat-api/
-docker build -t todo-chat-api:latest .
-cd ../notification-service/
-docker build -t todo-notification-service:latest .
-cd ../recurring-task-service/
-docker build -t todo-recurring-task-service:latest .
-cd ../audit-service/
-docker build -t todo-audit-service:latest .
-cd ../sync-service/
-docker build -t todo-sync-service:latest .
-
-# Push images to Minikube registry
-eval $(minikube docker-env)
-docker build -t todo-chat-api:latest ../chat-api/
-docker build -t todo-notification-service:latest ../notification-service/
-docker build -t todo-recurring-task-service:latest ../recurring-task-service/
-docker build -t todo-audit-service:latest ../audit-service/
-docker build -t todo-sync-service:latest ../sync-service/
-
-# Deploy services to Minikube
-kubectl apply -f infrastructure/k8s/overlays/minikube/
-```
-
-### 6. Deploy Frontend
+### 3. Run Frontend
 
 ```bash
 cd frontend
@@ -120,22 +133,13 @@ npm install
 npm run dev
 ```
 
-## Cloud Deployment
+## Frontend Configuration
 
-### 1. Provision Cloud Kubernetes Cluster
+The frontend is configured to communicate with the services:
 
-```bash
-# For Oracle Cloud Infrastructure
-./scripts/provision-cloud-cluster.sh
-
-# Or manually create your cluster on your preferred cloud provider
-```
-
-### 2. Deploy to Cloud
-
-```bash
-./scripts/deploy-to-cloud.sh
-```
+- `NEXT_PUBLIC_FASTAPI_API_URL`: Points to Chat API service at `http://chat-api:8000/api/v1` (in Docker) or `http://localhost:8000/api/v1` (locally)
+- `NEXT_PUBLIC_BETTER_AUTH_URL`: Authentication endpoint
+- `NEXT_PUBLIC_CHATKIT_API_URL`: Chat functionality endpoint
 
 ## Testing
 
@@ -167,7 +171,7 @@ python3 -m pytest tests/
 
 ```bash
 # Run end-to-end verification
-python3 scripts/verify-system.py
+python3 verify_system.py
 ```
 
 ### Manual Testing
@@ -178,52 +182,47 @@ python3 scripts/verify-system.py
 4. Verify that the task appears in the task list
 5. Complete a task and verify it's marked as completed
 6. Create a recurring task and verify it generates new tasks
-7. Set a reminder and verify notifications are received
-8. Check the audit trail for all operations
+7. Check the audit trail for all operations
+8. Verify real-time updates via WebSocket connections
 
 ## Verification Commands
 
 ### Check Service Status
 
 ```bash
-kubectl get pods
-kubectl get services
-kubectl get kafka
+# Check running containers
+docker compose ps
+
+# Check logs for all services
+docker compose logs
+
+# Check logs for specific service
+docker compose logs chat-api
+docker compose logs audit-service
+docker compose logs recurring-task-service
+docker compose logs notification-service
+docker compose logs sync-service
+docker compose logs frontend
 ```
 
 ### Check Kafka Topics
 
 ```bash
-kubectl exec -it my-cluster-kafka-0 -- bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
-```
+# List Kafka topics
+docker exec -it kafka kafka-topics --bootstrap-server localhost:9092 --list
 
-### Check Service Logs
-
-```bash
-# Chat API logs
-kubectl logs -f deployment/chat-api --since=1m
-
-# Notification service logs
-kubectl logs -f deployment/notification-service --since=1m
-
-# Recurring task service logs
-kubectl logs -f deployment/recurring-task-service --since=1m
-
-# Audit service logs
-kubectl logs -f deployment/audit-service --since=1m
-
-# Sync service logs
-kubectl logs -f deployment/sync-service --since=1m
+# Check specific topic
+docker exec -it kafka kafka-topics --bootstrap-server localhost:9092 --describe --topic task-events
 ```
 
 ### Test Kafka Connectivity
 
 ```bash
-# Produce a test message
-kubectl exec -it my-cluster-kafka-0 -- bin/kafka-console-producer.sh --bootstrap-server localhost:9092 --topic test-topic
+# Produce a test message to task-events topic
+docker exec -it kafka kafka-console-producer --bootstrap-server localhost:9092 --topic task-events
 
-# Consume messages
-kubectl exec -it my-cluster-kafka-0 -- bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test-topic --from-beginning
+# Consume messages from task-events topic
+docker exec -it kafka kafka-console-consumer --bootstrap-server localhost:9092 --topic task-events --from-beginning
 ```
 
 ## Configuration
@@ -233,127 +232,93 @@ kubectl exec -it my-cluster-kafka-0 -- bin/kafka-console-consumer.sh --bootstrap
 #### Backend Services
 - `DATABASE_URL` - PostgreSQL connection string
 - `KAFKA_BOOTSTRAP_SERVERS` - Kafka broker addresses
-- `DAPR_SIDECAR_IP` - Dapr sidecar IP address
 
 #### Frontend
-- `NEXT_PUBLIC_FASTAPI_API_URL` - Backend API URL
-- `NEXT_PUBLIC_WEBSOCKET_URL` - WebSocket service URL
-- `NEXT_PUBLIC_BASE_URL` - Frontend base URL
-- `BETTER_AUTH_URL` - Authentication service URL
+- `NEXT_PUBLIC_FASTAPI_API_URL` - Backend API URL (defaults to http://chat-api:8000/api/v1 in Docker)
+- `NEXT_PUBLIC_BETTER_AUTH_URL` - Authentication service URL
+- `NEXT_PUBLIC_CHATKIT_API_URL` - Chat functionality URL
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Service won't start**
-   - Check if all dependencies (Kafka, PostgreSQL, Dapr) are running
-   - Verify image names match what's in the deployment files
-   - Check resource limits in deployment files
+1. **Services won't start**
+   - Check if Docker daemon is running
+   - Verify all dependencies are installed
+   - Check logs with `docker-compose logs <service-name>`
 
 2. **Kafka Connection Issues**
-   - Ensure Kafka cluster is ready: `kubectl wait --for=condition=ready kafka/my-cluster`
-   - Check if Kafka topics were created successfully
-   - Verify network policies allow communication
+   - Ensure Kafka and Zookeeper are running
+   - Check if services can reach Kafka at `kafka:9092`
+   - Verify network connectivity between containers
 
-3. **Dapr Sidecar Missing**
-   - Ensure Dapr is initialized: `dapr init`
-   - Check if Dapr system services are running: `kubectl get pods -n dapr-system`
-   - Verify services have Dapr annotations in deployment files
-
-4. **Database Connection Issues**
+3. **Database Connection Issues**
    - Verify PostgreSQL is running and accessible
-   - Check database credentials in secrets
+   - Check database credentials in docker-compose.yml
    - Ensure database migration has run successfully
+
+4. **Frontend can't connect to backend**
+   - Verify NEXT_PUBLIC_FASTAPI_API_URL is set correctly
+   - Check if Chat API service is running on port 8000
+   - Ensure CORS settings allow frontend requests
 
 ### Diagnostic Commands
 
 ```bash
-# Check all resources
-kubectl get all -A
+# Check all running containers
+docker ps
 
-# Check events for issues
-kubectl get events --sort-by=.metadata.creationTimestamp
+# Check container networks
+docker network ls
 
-# Describe a specific pod for detailed info
-kubectl describe pod <pod-name>
+# Check specific container logs
+docker logs <container-name>
 
-# Check resource usage
-kubectl top nodes
-kubectl top pods
+# Execute commands inside a container
+docker exec -it <container-name> /bin/bash
 ```
 
-## Scaling
+## Stopping Services
 
-### Horizontal Pod Autoscaling
+### Stop All Services
 
 ```bash
-# Enable HPA for services
-kubectl autoscale deployment chat-api --cpu-percent=70 --min=1 --max=10
-kubectl autoscale deployment notification-service --cpu-percent=70 --min=1 --max=5
-kubectl autoscale deployment recurring-task-service --cpu-percent=70 --min=1 --max=5
+# Stop all services (Ctrl+C in terminal where docker compose up was run)
+# Or in detached mode:
+docker compose down
+
+# Stop all services and remove volumes
+docker compose down -v
 ```
 
-### Resource Limits
+## Development Notes
 
-Adjust resource limits in the Kubernetes deployment files:
+### Microservices Architecture Benefits
 
-```yaml
-resources:
-  requests:
-    memory: "256Mi"
-    cpu: "250m"
-  limits:
-    memory: "512Mi"
-    cpu: "500m"
-```
+1. **Decoupled Services**: Each service handles specific responsibilities independently
+2. **Event-Driven**: Services communicate through Kafka events, ensuring loose coupling
+3. **Scalability**: Individual services can be scaled based on demand
+4. **Maintainability**: Each service can be developed, tested, and deployed independently
 
-## Cleanup
+### Service Communication Flow
 
-### Local Cleanup
+1. User interacts with frontend
+2. Frontend sends requests to Chat API service
+3. Chat API processes requests and publishes events to Kafka
+4. Other services consume relevant events from Kafka
+5. Services update their respective data stores
+6. Sync service pushes real-time updates to frontend via WebSockets
 
-```bash
-# Delete all resources
-kubectl delete -f infrastructure/k8s/overlays/minikube/
-kubectl delete -f infrastructure/dapr/components/
-kubectl delete -f infrastructure/k8s/components/postgres.yaml
-kubectl delete -f infrastructure/k8s/base/
-kubectl delete -f infrastructure/k8s/components/kafka/topics/
-kubectl delete -f infrastructure/k8s/components/kafka/cluster.yaml
+## Migration from Old Backend
 
-# Stop Minikube
-minikube stop
-```
+The old monolithic `/backend` directory has been replaced with the new microservices architecture. All functionality has been distributed across specialized services:
 
-### Cloud Cleanup
-
-```bash
-# Delete cloud resources
-kubectl delete ns todo-app
-kubectl delete ns kafka
-kubectl delete ns dapr-system
-```
-
-## Monitoring and Observability
-
-### Health Checks
-
-Each service exposes a health check endpoint:
-- Chat API: `GET /health`
-- Notification Service: `GET /health`
-- Recurring Task Service: `GET /health`
-- Audit Service: `GET /health`
-- Sync Service: `GET /health`
-
-### Logging
-
-All services log to stdout/stderr, which can be viewed using:
-```bash
-kubectl logs -f <pod-name>
-```
-
-### Metrics
-
-Metrics are available through Kubernetes and can be enhanced with Prometheus/Grafana for more detailed monitoring.
+- Task management → Chat API Service
+- Event processing → All services consume from Kafka
+- Audit logging → Audit Service
+- Recurring tasks → Recurring Task Service
+- Notifications → Notification Service
+- Real-time sync → Sync Service
 
 ## Security
 
@@ -362,12 +327,38 @@ Metrics are available through Kubernetes and can be enhanced with Prometheus/Gra
 - JWT tokens for API authentication
 - Secure session management
 
-### Authorization
-- Role-based access control
-- Per-resource permissions
-- API rate limiting
-
-### Secrets Management
-- Dapr for secret management
+### Data Protection
 - Encrypted communication between services
-- Secure credential storage
+- Secure credential storage in environment variables
+- Proper isolation between services
+
+## Monitoring and Observability
+
+### Health Checks
+
+Each service exposes a health check endpoint:
+- Chat API: `GET /health` (available at http://localhost:8000/health)
+- Sync Service: `GET /health` (available at http://localhost:8001/health)
+
+### Logging
+
+All services log to stdout/stderr, which can be viewed using:
+```bash
+docker-compose logs <service-name>
+```
+
+## Cleanup
+
+### Stop and Remove All Containers
+
+```bash
+# Stop and remove all containers, networks, and volumes
+docker compose down -v
+```
+
+### Remove Docker Images (Optional)
+
+```bash
+# Remove all service images
+docker rmi todo-chat-api todo-audit-service todo-recurring-task-service todo-notification-service todo-sync-service frontend
+```

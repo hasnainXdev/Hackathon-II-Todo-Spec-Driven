@@ -105,6 +105,8 @@ services:
   sync-service:
     build: ./services/sync-service
     container_name: sync-service
+    ports:
+      - "8001:8000"
     environment:
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/todo_sync
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
