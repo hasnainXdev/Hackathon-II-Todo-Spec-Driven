@@ -4,6 +4,9 @@
 
 This project is a secure, multi-user full-stack web application with persistent storage and authentication. It allows users to manage their personal todo lists with features for creating, reading, updating, and deleting tasks while ensuring data privacy and preventing unauthorized access.
 
+## Live Preview ⭐
+[https://taskflow-ai-snowy.vercel.app]
+
 The application has been enhanced with AI chatbot capabilities that allow users to manage their tasks using natural language commands.
 
 ## Architecture
