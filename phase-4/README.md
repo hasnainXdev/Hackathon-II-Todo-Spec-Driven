@@ -3,6 +3,9 @@
 ## Overview
 This document provides instructions for deploying the Todo Chatbot application to a local Kubernetes cluster using Minikube.
 
+## Live Preview ⭐
+[https://taskflow-ai-snowy.vercel.app]
+
 ## Prerequisites
 - Docker installed and running
 - Minikube installed (version 1.20 or higher)
