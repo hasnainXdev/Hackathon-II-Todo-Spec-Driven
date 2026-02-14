@@ -13,6 +13,8 @@ interface FormattedTask {
   userId: string;
   createdAt: Date;
   updatedAt: Date;
+  priority: 'low' | 'medium' | 'high';
+  tags: string[];
 }
 
 interface TaskListProps {
@@ -34,14 +36,33 @@ const TaskList = ({ userId, onTasksUpdate }: TaskListProps) => {
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const [isWsConnected, setIsWsConnected] = useState(false);
+  
+  // New state for search, filter, and sort
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterPriority, setFilterPriority] = useState<'all' | 'low' | 'medium' | 'high'>('all');
+  const [filterTag, setFilterTag] = useState<string>('all');
+  const [filterCompletion, setFilterCompletion] = useState<'all' | 'completed' | 'incomplete'>('all');
+  const [sortBy, setSortBy] = useState<'createdAt' | 'updatedAt' | 'priority' | 'title'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
         setLoading(true);
 
-        // Fetch tasks from the backend API
-        const response = await authenticatedApi.get<Task[]>('/tasks/');
+        // Build query parameters for search, filter, and sort
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (filterPriority !== 'all') params.append('priority', filterPriority);
+        if (filterTag !== 'all') params.append('tag', filterTag);
+        if (filterCompletion !== 'all') {
+          params.append('completed', filterCompletion === 'completed' ? 'true' : 'false');
+        }
+        params.append('sort', sortBy);
+        params.append('order', sortOrder);
+
+        // Fetch tasks from the backend API with query parameters
+        const response = await authenticatedApi.get<Task[]>(`/tasks/?${params.toString()}`);
         const apiTasks = response.data;
 
         // Convert from API response to FormattedTask interface
@@ -53,6 +74,8 @@ const TaskList = ({ userId, onTasksUpdate }: TaskListProps) => {
           userId: task.user_id,
           createdAt: new Date(task.created_at),
           updatedAt: new Date(task.updated_at),
+          priority: task.priority || 'medium',
+          tags: task.tags || [],
         }));
 
         setTaskList(tasksForDisplay);
@@ -73,7 +96,7 @@ const TaskList = ({ userId, onTasksUpdate }: TaskListProps) => {
     if (userId) {
       fetchTasks();
     }
-  }, [userId, onTasksUpdate]);
+  }, [userId, onTasksUpdate, searchTerm, filterPriority, filterTag, filterCompletion, sortBy, sortOrder]);
 
   // Set up WebSocket connection for real-time updates
   useEffect(() => {
@@ -131,6 +154,8 @@ const TaskList = ({ userId, onTasksUpdate }: TaskListProps) => {
               userId: message.payload.user_id,
               createdAt: new Date(message.payload.created_at),
               updatedAt: new Date(message.payload.updated_at),
+              priority: message.payload.priority || 'medium',
+              tags: message.payload.tags || [],
             };
             setTaskList(prev => [...prev, newTask]);
             if (onTasksUpdate) onTasksUpdate([...taskList, newTask]);
@@ -147,6 +172,8 @@ const TaskList = ({ userId, onTasksUpdate }: TaskListProps) => {
                       completionStatus: message.payload.completion_status ?? task.completionStatus,
                       title: message.payload.title ?? task.title,
                       description: message.payload.description ?? task.description,
+                      priority: message.payload.priority ?? task.priority,
+                      tags: message.payload.tags ?? task.tags,
                       updatedAt: new Date(message.payload.updated_at ?? task.updatedAt)
                     }
                   : task
@@ -161,6 +188,8 @@ const TaskList = ({ userId, onTasksUpdate }: TaskListProps) => {
                     completionStatus: message.payload.completion_status ?? task.completionStatus,
                     title: message.payload.title ?? task.title,
                     description: message.payload.description ?? task.description,
+                    priority: message.payload.priority ?? task.priority,
+                    tags: message.payload.tags ?? task.tags,
                     updatedAt: new Date(message.payload.updated_at ?? task.updatedAt)
                   }
                 : task
@@ -224,8 +253,19 @@ const TaskList = ({ userId, onTasksUpdate }: TaskListProps) => {
           try {
             // Only fetch if we're not already loading
             if (!loading) {
-              // Fetch tasks from the backend API
-              const response = await authenticatedApi.get<Task[]>('/tasks/');
+              // Build query parameters for search, filter, and sort
+              const params = new URLSearchParams();
+              if (searchTerm) params.append('search', searchTerm);
+              if (filterPriority !== 'all') params.append('priority', filterPriority);
+              if (filterTag !== 'all') params.append('tag', filterTag);
+              if (filterCompletion !== 'all') {
+                params.append('completed', filterCompletion === 'completed' ? 'true' : 'false');
+              }
+              params.append('sort', sortBy);
+              params.append('order', sortOrder);
+
+              // Fetch tasks from the backend API with query parameters
+              const response = await authenticatedApi.get<Task[]>(`/tasks/?${params.toString()}`);
               const apiTasks = response.data;
 
               // Convert from API response to FormattedTask interface
@@ -237,6 +277,8 @@ const TaskList = ({ userId, onTasksUpdate }: TaskListProps) => {
                 userId: task.user_id,
                 createdAt: new Date(task.created_at),
                 updatedAt: new Date(task.updated_at),
+                priority: task.priority || 'medium',
+                tags: task.tags || [],
               }));
 
               setTaskList(tasksForDisplay);
@@ -260,7 +302,7 @@ const TaskList = ({ userId, onTasksUpdate }: TaskListProps) => {
         clearInterval(refreshInterval);
       };
     }
-  }, [userId, onTasksUpdate, loading, isWsConnected]);
+  }, [userId, onTasksUpdate, loading, isWsConnected, searchTerm, filterPriority, filterTag, filterCompletion, sortBy, sortOrder]);
 
   const toggleTaskCompletion = async (taskId: string, currentStatus: boolean) => {
     setUpdatingTaskId(taskId);
@@ -313,6 +355,9 @@ const TaskList = ({ userId, onTasksUpdate }: TaskListProps) => {
     }
   };
 
+  // Get all unique tags from tasks for filtering
+  const allTags = Array.from(new Set(taskList.flatMap(task => task.tags)));
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-32">
@@ -331,6 +376,147 @@ const TaskList = ({ userId, onTasksUpdate }: TaskListProps) => {
 
   return (
     <div>
+      {/* Controls for search, filter, and sort */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <label htmlFor="search" className="block text-sm font-medium text-gray-300 mb-1">
+            Search
+          </label>
+          <input
+            type="text"
+            id="search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-white placeholder-gray-500"
+            placeholder="Search tasks..."
+          />
+        </div>
+
+        <div>
+          <label htmlFor="filterPriority" className="block text-sm font-medium text-gray-300 mb-1">
+            Priority
+          </label>
+          <select
+            id="filterPriority"
+            value={filterPriority}
+            onChange={(e) => setFilterPriority(e.target.value as 'all' | 'low' | 'medium' | 'high')}
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-white"
+          >
+            <option value="all">All Priorities</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="filterTag" className="block text-sm font-medium text-gray-300 mb-1">
+            Tag
+          </label>
+          <select
+            id="filterTag"
+            value={filterTag}
+            onChange={(e) => setFilterTag(e.target.value)}
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-white"
+          >
+            <option value="all">All Tags</option>
+            {allTags.map(tag => (
+              <option key={tag} value={tag}>{tag}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="filterCompletion" className="block text-sm font-medium text-gray-300 mb-1">
+            Status
+          </label>
+          <select
+            id="filterCompletion"
+            value={filterCompletion}
+            onChange={(e) => setFilterCompletion(e.target.value as 'all' | 'completed' | 'incomplete')}
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-white"
+          >
+            <option value="all">All Statuses</option>
+            <option value="incomplete">Incomplete</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Sort By</label>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setSortBy('createdAt')}
+              className={`px-3 py-1.5 text-sm rounded-lg ${
+                sortBy === 'createdAt'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Created
+            </button>
+            <button
+              onClick={() => setSortBy('updatedAt')}
+              className={`px-3 py-1.5 text-sm rounded-lg ${
+                sortBy === 'updatedAt'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Updated
+            </button>
+            <button
+              onClick={() => setSortBy('priority')}
+              className={`px-3 py-1.5 text-sm rounded-lg ${
+                sortBy === 'priority'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Priority
+            </button>
+            <button
+              onClick={() => setSortBy('title')}
+              className={`px-3 py-1.5 text-sm rounded-lg ${
+                sortBy === 'title'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Title
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Order</label>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setSortOrder('asc')}
+              className={`px-3 py-1.5 text-sm rounded-lg ${
+                sortOrder === 'asc'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Ascending
+            </button>
+            <button
+              onClick={() => setSortOrder('desc')}
+              className={`px-3 py-1.5 text-sm rounded-lg ${
+                sortOrder === 'desc'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Descending
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Show WebSocket connection status */}
       <div className="flex items-center justify-end mb-2">
         <span className={`text-xs flex items-center ${isWsConnected ? 'text-green-400' : 'text-yellow-400'}`}>
@@ -406,12 +592,41 @@ const TaskList = ({ userId, onTasksUpdate }: TaskListProps) => {
                         </button>
                       </div>
                     </div>
+                    
                     {task.description && (
                       <p className={`mt-1 text-sm ${task.completionStatus ? 'text-green-400/70' : 'text-gray-400'
                         }`}>
                         {task.description}
                       </p>
                     )}
+                    
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {/* Priority badge */}
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        task.priority === 'low' 
+                          ? 'bg-green-900/30 text-green-300 border border-green-800/50' 
+                          : task.priority === 'medium' 
+                            ? 'bg-yellow-900/30 text-yellow-300 border border-yellow-800/50' 
+                            : 'bg-red-900/30 text-red-300 border border-red-800/50'
+                      }`}>
+                        {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                      </span>
+                      
+                      {/* Tags */}
+                      {task.tags && task.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {task.tags.map((tag, idx) => (
+                            <span 
+                              key={idx} 
+                              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-300 border border-blue-800/50"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
                     <div className="mt-2 text-xs text-gray-500 flex items-center">
                       <svg className="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

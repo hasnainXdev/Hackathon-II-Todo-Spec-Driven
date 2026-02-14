@@ -1,9 +1,12 @@
 from datetime import datetime
 from typing import List, Optional
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from models.task import Task, TaskCreate, TaskUpdate
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy import text, and_
 from utils.exceptions import TaskNotFoundException, TaskUpdateConflictException
+from utils.tag_utils import sanitize_and_validate_tags
+import json
 
 
 class TaskService:
@@ -12,6 +15,10 @@ class TaskService:
 
     def create_task(self, task_data: TaskCreate, user_id: str) -> Task:
         """Create a new task for a user"""
+        # Sanitize and validate tags
+        tags = task_data.tags if task_data.tags is not None else []
+        sanitized_tags = sanitize_and_validate_tags(tags)
+        
         # Create the task with the user_id from the authenticated user
         task = Task(
             title=task_data.title,
@@ -20,6 +27,7 @@ class TaskService:
             user_id=user_id,  # Use the user_id from the authenticated user
             due_date=task_data.due_date,
             priority=task_data.priority,
+            tags=sanitized_tags,
         )
         self.session.add(task)
         self.session.commit()
@@ -34,16 +42,80 @@ class TaskService:
         return task
 
     def get_tasks_by_user(
-        self, user_id: str, skip: int = 0, limit: int = 100
+        self, 
+        user_id: str, 
+        skip: int = 0, 
+        limit: int = 100,
+        search: Optional[str] = None,
+        priority: Optional[str] = None,
+        tag: Optional[str] = None,
+        completed: Optional[bool] = None,
+        sort: Optional[str] = None,
+        order: Optional[str] = None
     ) -> List[Task]:
-        """Get all tasks for a specific user"""
-        tasks = (
-            self.session.execute(
-                select(Task).where(Task.user_id == user_id).offset(skip).limit(limit)
+        """
+        Get all tasks for a specific user with optional search, filter, and sort
+        """
+        # Start with the base query
+        query = select(Task).where(Task.user_id == user_id)
+        
+        # Apply search if provided
+        if search:
+            search_lower = search.lower()
+            # Search in title and description
+            query = query.where(
+                (Task.title.ilike(f"%{search}%")) |
+                (Task.description.ilike(f"%{search}%"))
             )
-            .scalars()
-            .all()
-        )
+            # For tag search, we'll need to handle it differently since tags are stored as JSON
+            # We'll filter the results after fetching if search term might match a tag
+        
+        # Apply filters
+        if priority:
+            query = query.where(Task.priority == priority.lower())
+        
+        if completed is not None:
+            query = query.where(Task.completion_status == completed)
+        
+        # Apply sorting
+        if sort:
+            sort_attr = getattr(Task, sort, None)
+            if sort_attr:
+                if order and order.lower() == 'asc':
+                    query = query.order_by(sort_attr.asc())
+                else:
+                    query = query.order_by(sort_attr.desc())
+            else:
+                # Fallback to default sorting if invalid sort field
+                query = query.order_by(Task.created_at.desc())
+        else:
+            # Default sorting
+            query = query.order_by(Task.created_at.desc())
+        
+        # Apply pagination
+        query = query.offset(skip).limit(limit)
+        
+        tasks = self.session.execute(query).scalars().all()
+        
+        # Apply tag filter and search in tags after fetching (since tags are JSON)
+        if tag:
+            tasks = [task for task in tasks if tag in task.tags]
+        
+        if search and not tag:  # Only apply tag search if not already filtering by specific tag
+            search_lower = search.lower()
+            tasks = [task for task in tasks if 
+                     search_lower in task.title.lower() or 
+                     (task.description and search_lower in task.description.lower()) or
+                     search_lower in [t.lower() for t in task.tags]]
+        
+        if search and tag:  # If both search and tag are specified
+            search_lower = search.lower()
+            tasks = [task for task in tasks if 
+                     tag in task.tags and
+                     (search_lower in task.title.lower() or 
+                      (task.description and search_lower in task.description.lower()) or
+                      search_lower in [t.lower() for t in task.tags])]
+        
         return tasks
 
     def update_task(
@@ -61,6 +133,11 @@ class TaskService:
 
         # Update the task
         update_data = task_data.model_dump(exclude_unset=True)
+        
+        # Handle tags separately to sanitize and validate them
+        if 'tags' in update_data and update_data['tags'] is not None:
+            update_data['tags'] = sanitize_and_validate_tags(update_data['tags'])
+        
         for field, value in update_data.items():
             if field != "version":  # Don't update the version field directly
                 setattr(current_task, field, value)

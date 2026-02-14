@@ -6,6 +6,9 @@ export interface Task {
   user_id: string;
   created_at: string;
   updated_at: string;
+  priority: 'low' | 'medium' | 'high';  // New priority field
+  tags: string[];  // New tags field
+  due_date?: string;  // Existing due date field
 }
 
 export interface UserPreference {

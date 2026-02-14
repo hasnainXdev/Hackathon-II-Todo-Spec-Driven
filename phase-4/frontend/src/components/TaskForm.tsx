@@ -12,6 +12,8 @@ interface TaskFormProps {
 export default function TaskForm({ onTaskAdded }: TaskFormProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium'); // Default to medium
+  const [tags, setTags] = useState<string>(''); // Store tags as a comma-separated string
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,18 +34,40 @@ export default function TaskForm({ onTaskAdded }: TaskFormProps) {
       return;
     }
 
+    // Process tags: split by comma, trim, and filter out empty strings
+    const processedTags = tags.split(',')
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0);
+
+    // Validate tags
+    if (processedTags.length > 10) {
+      toast.error('Maximum 10 tags allowed');
+      return;
+    }
+
+    for (const tag of processedTags) {
+      if (tag.length < 2 || tag.length > 20) {
+        toast.error(`Each tag must be 2-20 characters: "${tag}"`);
+        return;
+      }
+    }
+
     setIsLoading(true);
     try {
       const response = await authenticatedApi.post<Task>('/tasks/', {
         title: title.trim(),
         description: description.trim(),
         completion_status: false,
+        priority: priority,
+        tags: processedTags,
       });
 
       // The API response should already match the Task interface
       onTaskAdded(response.data as Task);
       setTitle('');
       setDescription('');
+      setPriority('medium'); // Reset to default
+      setTags(''); // Reset tags
       toast.success('Task created successfully!');
     } catch (error: any) {
       console.error('Error creating task:', error);
@@ -108,6 +132,42 @@ export default function TaskForm({ onTaskAdded }: TaskFormProps) {
           {description.length > 1000 && (
             <span className="text-red-400 ml-1">Too long!</span>
           )}
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="priority" className="block text-sm font-medium text-gray-300 mb-2">
+          Priority
+        </label>
+        <select
+          id="priority"
+          value={priority}
+          onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}
+          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-white"
+          disabled={isLoading}
+        >
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="tags" className="block text-sm font-medium text-gray-300 mb-2">
+          Tags (comma-separated)
+        </label>
+        <input
+          type="text"
+          id="tags"
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-white placeholder-gray-500"
+          placeholder="work, important, urgent (max 10 tags, 2-20 chars each)"
+          disabled={isLoading}
+          aria-describedby="tags-help"
+        />
+        <div id="tags-help" className="text-xs text-gray-400 mt-1">
+          Enter tags separated by commas (e.g., "work, important, urgent"). Max 10 tags, 2-20 characters each.
         </div>
       </div>
 

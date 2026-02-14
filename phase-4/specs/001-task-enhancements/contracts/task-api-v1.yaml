@@ -1,0 +1,358 @@
+openapi: 3.0.3
+info:
+  title: Task Management API
+  description: API for managing tasks with enhanced features like priorities, tags, search, filter, and sort
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: https://staging-api.example.com/v1
+    description: Staging server
+
+paths:
+  /tasks:
+    get:
+      summary: Get tasks with optional search, filter, and sort
+      description: Retrieve a list of tasks with optional search, filtering, and sorting capabilities
+      parameters:
+        - name: search
+          in: query
+          description: Search term to match against title, description, and tags
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+        - name: priority
+          in: query
+          description: Filter tasks by priority level
+          required: false
+          schema:
+            type: string
+            enum: [LOW, MEDIUM, HIGH]
+        - name: tag
+          in: query
+          description: Filter tasks by a specific tag
+          required: false
+          schema:
+            type: string
+        - name: completed
+          in: query
+          description: Filter tasks by completion status
+          required: false
+          schema:
+            type: boolean
+        - name: sort
+          in: query
+          description: Field to sort by
+          required: false
+          schema:
+            type: string
+            enum: [createdAt, updatedAt, priority, title]
+            default: createdAt
+        - name: order
+          in: query
+          description: Sort order
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of results to skip
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of tasks matching the criteria
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  totalCount:
+                    type: integer
+                    description: Total number of tasks matching the criteria
+                  limit:
+                    type: integer
+                    description: Number of tasks returned in this response
+                  offset:
+                    type: integer
+                    description: Number of tasks skipped
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Create a new task
+      description: Create a new task with optional priority and tags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tasks/{taskId}:
+    get:
+      summary: Get a specific task
+      description: Retrieve a specific task by its ID
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: Unique identifier for the task
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Update a task
+      description: Update an existing task's properties
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: Unique identifier for the task
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete a task
+      description: Remove a task permanently
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: Unique identifier for the task
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Task deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - priority
+        - tags
+        - completed
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the task
+        title:
+          type: string
+          description: Title of the task
+          maxLength: 255
+        description:
+          type: string
+          description: Detailed description of the task
+          maxLength: 1000
+        priority:
+          type: string
+          description: Priority level of the task
+          enum: [LOW, MEDIUM, HIGH]
+          default: MEDIUM
+        tags:
+          type: array
+          description: Tags associated with the task
+          maxItems: 10
+          items:
+            type: string
+            minLength: 2
+            maxLength: 20
+            pattern: '^[a-z0-9_-]+$'
+        completed:
+          type: boolean
+          description: Whether the task is completed
+          default: false
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the task was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the task was last updated
+
+    CreateTaskRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: Title of the task
+          maxLength: 255
+        description:
+          type: string
+          description: Detailed description of the task
+          maxLength: 1000
+        priority:
+          type: string
+          description: Priority level of the task
+          enum: [LOW, MEDIUM, HIGH]
+          default: MEDIUM
+        tags:
+          type: array
+          description: Tags associated with the task
+          maxItems: 10
+          items:
+            type: string
+            minLength: 2
+            maxLength: 20
+            pattern: '^[a-z0-9_-]+$'
+        completed:
+          type: boolean
+          description: Whether the task is completed
+          default: false
+
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title of the task
+          maxLength: 255
+        description:
+          type: string
+          description: Detailed description of the task
+          maxLength: 1000
+        priority:
+          type: string
+          description: Priority level of the task
+          enum: [LOW, MEDIUM, HIGH]
+        tags:
+          type: array
+          description: Tags associated with the task
+          maxItems: 10
+          items:
+            type: string
+            minLength: 2
+            maxLength: 20
+            pattern: '^[a-z0-9_-]+$'
+        completed:
+          type: boolean
+          description: Whether the task is completed
+
+  responses:
+    BadRequest:
+      description: Bad request - validation error or malformed input
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Invalid input"
+              details:
+                type: object
+                description: Specific validation errors
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
+
+    Unauthorized:
+      description: Authentication required or invalid credentials
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Authentication required"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Resource not found"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
