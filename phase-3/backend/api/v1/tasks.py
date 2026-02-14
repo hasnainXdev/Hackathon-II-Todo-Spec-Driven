@@ -18,9 +18,15 @@ async def get_tasks(
     current_user: dict = Depends(get_current_user),
     skip: int = 0,
     limit: int = 100,
+    search: str = None,
+    priority: str = None,
+    tag: str = None,
+    completed: bool = None,
+    sort: str = None,
+    order: str = None,
     db: Session = Depends(get_db),
 ):
-    """Get all tasks for the current user"""
+    """Get all tasks for the current user with optional search, filter, and sort"""
     # Validate that the user ID exists
     user_id = current_user.get("id")
     if not user_id:
@@ -30,7 +36,17 @@ async def get_tasks(
         )
 
     service = TaskService(db)
-    tasks = service.get_tasks_by_user(user_id, skip=skip, limit=limit)
+    tasks = service.get_tasks_by_user(
+        user_id, 
+        skip=skip, 
+        limit=limit,
+        search=search,
+        priority=priority,
+        tag=tag,
+        completed=completed,
+        sort=sort,
+        order=order
+    )
     return tasks
 
 
