@@ -5,9 +5,11 @@
 
 ## Phase II
 - Full-Stack Web Application, Next.js, FastAPI, SQLModel, Neon DB.
+- (visit↗️)[https://ultimate-todoflow.vercel.app]
 
 ## Phase III
 - AI-Powered Todo Chatbot, OpenAI ChatKit, Agents SDK, Official MCP SDK
+- (visit↗️)[https://taskflow-ai-snowy.vercel.app]
 
 ## Phase IV
 - Local Kubernetes Deployment, Docker, Minikube, Helm, kubectl-ai, kagent
